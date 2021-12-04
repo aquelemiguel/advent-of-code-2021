@@ -26,6 +26,7 @@ fn p1(depths: &Vec<i32>) -> i32 {
     count
 }
 
+// TODO: ARRAYWINDOWS
 fn p2(depths: &Vec<i32>) -> i32 {
     let mut count = 0;
     let mut last_window: i32 = depths[0..3].iter().sum();
