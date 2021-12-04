@@ -8,38 +8,19 @@ fn main() {
         .map(|line| line.to_string().parse::<i32>().unwrap())
         .collect();
 
-    println!("P1: {}", p1(&depths));
-    println!("P2: {}", p2(&depths));
+    println!("P1: {}\nP2: {}", p1(&depths), p2(&depths));
 }
 
-fn p1(depths: &Vec<i32>) -> i32 {
-    let mut last_depth = &depths[0];
-    let mut count = 0;
-
-    for depth in depths.iter().skip(1) {
-        if depth > last_depth {
-            count += 1;
-        }
-        last_depth = depth;
-    }
-
-    count
+fn p1(depths: &[i32]) -> usize {
+    depths.windows(2).filter(|pair| pair[1] > pair[0]).count()
 }
 
-// TODO: ARRAYWINDOWS
-fn p2(depths: &Vec<i32>) -> i32 {
-    let mut count = 0;
-    let mut last_window: i32 = depths[0..3].iter().sum();
-
-    for i in 1..depths.len() - 2 {
-        let curr_window: i32 = depths[i..i + 3].iter().sum();
-
-        if curr_window > last_window {
-            count += 1;
-        }
-
-        last_window = curr_window;
-    }
-
-    count
+fn p2(depths: &[i32]) -> usize {
+    depths
+        .windows(3)
+        .map(|w| w.iter().sum())
+        .collect::<Vec<i32>>()
+        .windows(2)
+        .filter(|pair| pair[1] > pair[0])
+        .count()
 }
