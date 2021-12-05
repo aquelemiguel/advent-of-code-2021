@@ -9,7 +9,13 @@ struct BingoCell {
 type BingoCard = Vec<Vec<BingoCell>>;
 
 fn main() {
-    let (cage, mut cards) = read_input("input/d04-example");
+    let (cards, cage) = read_input("input/d04-example");
+    let winners = bingo(cards, &cage);
+
+    println!("P1: {}\nP2: {}", &winners[0], winners.last().unwrap());
+}
+
+fn bingo(mut cards: Vec<BingoCard>, cage: &Vec<i32>) -> Vec<i32> {
     let mut winners: Vec<i32> = vec![];
 
     for draw in cage.iter() {
@@ -26,7 +32,7 @@ fn main() {
         winners.append(&mut scores);
     }
 
-    println!("P1: {}\nP2: {}", winners[0], winners.last().unwrap());
+    winners
 }
 
 fn calculate_score(card: &BingoCard, latest_draw: &i32) -> i32 {
@@ -54,7 +60,7 @@ fn find_cell<'a>(card: &'a mut BingoCard, draw: &i32) -> Option<&'a mut BingoCel
     return None;
 }
 
-fn read_input(file_name: &str) -> (Vec<i32>, Vec<BingoCard>) {
+fn read_input(file_name: &str) -> (Vec<BingoCard>, Vec<i32>) {
     let input = fs::read_to_string(file_name).expect("Error while reading");
 
     let mut lines = input.lines().peekable();
@@ -88,5 +94,5 @@ fn read_input(file_name: &str) -> (Vec<i32>, Vec<BingoCard>) {
         cards.push(card);
     }
 
-    (cage, cards)
+    (cards, cage)
 }
