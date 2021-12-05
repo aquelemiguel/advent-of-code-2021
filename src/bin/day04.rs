@@ -15,7 +15,7 @@ fn main() {
     println!("P1: {}\nP2: {}", &winners[0], winners.last().unwrap());
 }
 
-fn bingo(mut cards: Vec<BingoCard>, cage: &Vec<i32>) -> Vec<i32> {
+fn bingo(mut cards: Vec<BingoCard>, cage: &[i32]) -> Vec<i32> {
     let mut winners: Vec<i32> = vec![];
 
     for draw in cage.iter() {
@@ -57,7 +57,7 @@ fn find_cell<'a>(card: &'a mut BingoCard, draw: &i32) -> Option<&'a mut BingoCel
             return Some(found);
         }
     }
-    return None;
+    None
 }
 
 fn read_input(file_name: &str) -> (Vec<BingoCard>, Vec<i32>) {

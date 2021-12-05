@@ -1,7 +1,6 @@
 use regex::Regex;
 use std::collections::HashMap;
 
-#[derive(Clone)]
 struct Vent {
     start: (i32, i32),
     end: (i32, i32),
@@ -13,21 +12,18 @@ fn main() {
     let input = std::fs::read_to_string("input/d05-full").expect("Error while reading");
     let re = Regex::new(r"(\d+),(\d+) -> (\d+),(\d+)").unwrap();
 
-    let vents: Vec<Vent> = input
-        .lines()
-        .map(|line| {
-            let capture = re.captures_iter(line).next().unwrap();
-            let coords: Vec<i32> = (1..5).map(|i| capture[i].parse().unwrap()).collect();
+    let vents = input.lines().map(|line| {
+        let capture = re.captures_iter(line).next().unwrap();
+        let coords: Vec<i32> = (1..5).map(|i| capture[i].parse().unwrap()).collect();
 
-            Vent {
-                start: (coords[0], coords[1]),
-                end: (coords[2], coords[3]),
-            }
-        })
-        .collect();
+        Vent {
+            start: (coords[0], coords[1]),
+            end: (coords[2], coords[3]),
+        }
+    });
 
     let (mut straight, mut diagonals): (Vec<Vent>, Vec<Vent>) =
-        vents.into_iter().partition(|vent| is_straight_line(vent));
+        vents.partition(|vent| is_straight_line(vent));
     println!("P1: {}", generate_ocean_floor(&straight));
 
     straight.append(&mut diagonals);
