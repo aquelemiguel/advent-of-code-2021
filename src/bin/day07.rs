@@ -10,22 +10,16 @@ fn main() {
 
 fn get_optimal_position(crabs: &[i32], linear: bool) -> i32 {
     (crabs[0]..crabs[crabs.len() - 1]).fold(i32::MAX, |acc, i| {
-        let fuel: i32 = if linear {
-            align_to_position(&crabs, i).iter().sum()
+        let aligned = align_to_position(&crabs, i);
+
+        if linear {
+            i32::min(acc, aligned.iter().sum())
         } else {
-            align_to_position(&crabs, i)
-                .iter()
-                .map(|step| get_triangular_number(*step))
-                .sum()
-        };
-        i32::min(acc, fuel)
+            i32::min(acc, aligned.iter().map(|n| n * (n + 1) / 2).sum())
+        }
     })
 }
 
 fn align_to_position(crabs: &[i32], position: i32) -> Vec<i32> {
     crabs.iter().map(|crab| (crab - position).abs()).collect()
-}
-
-fn get_triangular_number(n: i32) -> i32 {
-    n * (n + 1) / 2
 }
