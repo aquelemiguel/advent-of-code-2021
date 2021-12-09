@@ -5,10 +5,19 @@ type Basin = HashSet<(usize, usize)>;
 fn main() {
     let input = std::fs::read_to_string("input/d09-full").expect("Error while reading");
 
-    let matrix: Vec<Vec<u32>> = input
+    let mut matrix: Vec<Vec<u32>> = input
         .lines()
         .map(|line| line.chars().map(|c| c.to_digit(10).unwrap()).collect())
         .collect();
+
+    // Pad the matrix with 9's to better handle out-of-bounds
+    matrix.iter_mut().for_each(|line| {
+        line.append(&mut vec![9, 9]);
+        line.rotate_right(1);
+    });
+
+    matrix.insert(0, vec![9; matrix[0].len()]);
+    matrix.push(vec![9; matrix[0].len()]);
 
     let lowest_points: Vec<(usize, usize)> = compute_lowest_points(&matrix);
     let res: u32 = lowest_points.iter().map(|p| matrix[p.0][p.1] + 1).sum();
@@ -32,57 +41,40 @@ fn main() {
 }
 
 fn compute_lowest_points(matrix: &Vec<Vec<u32>>) -> Vec<(usize, usize)> {
-    let lowest_points: Vec<Vec<(usize, usize)>> = (0..matrix.len())
-        .map(|i| {
-            (0..matrix[i].len())
-                .filter_map(|j| {
-                    let mut is_lowest_point = true;
+    let mut lowest_points: Vec<(usize, usize)> = vec![];
 
-                    if i > 0 {
-                        is_lowest_point &= matrix[i][j] < matrix[i - 1][j];
-                    }
+    for i in 1..matrix.len() - 1 {
+        for j in 1..matrix[i].len() - 1 {
+            if is_low_point(&(i, j), matrix) {
+                lowest_points.push((i, j));
+            }
+        }
+    }
 
-                    if i < matrix.len() - 1 {
-                        is_lowest_point &= matrix[i][j] < matrix[i + 1][j];
-                    }
+    lowest_points
+}
 
-                    if j > 0 {
-                        is_lowest_point &= matrix[i][j] < matrix[i][j - 1];
-                    }
-
-                    if j < matrix[i].len() - 1 {
-                        is_lowest_point &= matrix[i][j] < matrix[i][j + 1];
-                    }
-
-                    match is_lowest_point {
-                        true => Some((i, j)),
-                        false => None,
-                    }
-                })
-                .collect()
-        })
-        .collect();
-
-    lowest_points.iter().flatten().cloned().collect()
+fn is_low_point(p: &(usize, usize), matrix: &Vec<Vec<u32>>) -> bool {
+    matrix[p.0][p.1] < matrix[p.0 - 1][p.1]
+        && matrix[p.0][p.1] < matrix[p.0 + 1][p.1]
+        && matrix[p.0][p.1] < matrix[p.0][p.1 - 1]
+        && matrix[p.0][p.1] < matrix[p.0][p.1 + 1]
 }
 
 fn flood_fill(point: &(usize, usize), matrix: &Vec<Vec<u32>>, basin: &mut HashSet<(usize, usize)>) {
     if !basin.contains(&point) {
         basin.insert(*point);
 
-        if point.0 > 0 && matrix[point.0 - 1][point.1] != 9 {
+        if matrix[point.0 - 1][point.1] != 9 {
             flood_fill(&(point.0 - 1, point.1), matrix, basin);
         }
-
-        if point.0 < matrix.len() - 1 && matrix[point.0 + 1][point.1] != 9 {
+        if matrix[point.0 + 1][point.1] != 9 {
             flood_fill(&(point.0 + 1, point.1), matrix, basin);
         }
-
-        if point.1 > 0 && matrix[point.0][point.1 - 1] != 9 {
+        if matrix[point.0][point.1 - 1] != 9 {
             flood_fill(&(point.0, point.1 - 1), matrix, basin);
         }
-
-        if point.1 < matrix[point.0].len() - 1 && matrix[point.0][point.1 + 1] != 9 {
+        if matrix[point.0][point.1 + 1] != 9 {
             flood_fill(&(point.0, point.1 + 1), matrix, basin);
         }
     }
