@@ -61,21 +61,21 @@ fn is_low_point(p: &(usize, usize), matrix: &Vec<Vec<u32>>) -> bool {
         && matrix[p.0][p.1] < matrix[p.0][p.1 + 1]
 }
 
-fn flood_fill(point: &(usize, usize), matrix: &Vec<Vec<u32>>, basin: &mut HashSet<(usize, usize)>) {
-    if !basin.contains(&point) {
-        basin.insert(*point);
+fn flood_fill(p: &(usize, usize), matrix: &Vec<Vec<u32>>, basin: &mut HashSet<(usize, usize)>) {
+    if !basin.contains(&p) {
+        basin.insert(*p);
 
-        if matrix[point.0 - 1][point.1] != 9 {
-            flood_fill(&(point.0 - 1, point.1), matrix, basin);
+        if matrix[p.0 - 1][p.1] != 9 {
+            flood_fill(&(p.0 - 1, p.1), matrix, basin);
         }
-        if matrix[point.0 + 1][point.1] != 9 {
-            flood_fill(&(point.0 + 1, point.1), matrix, basin);
+        if matrix[p.0 + 1][p.1] != 9 {
+            flood_fill(&(p.0 + 1, p.1), matrix, basin);
         }
-        if matrix[point.0][point.1 - 1] != 9 {
-            flood_fill(&(point.0, point.1 - 1), matrix, basin);
+        if matrix[p.0][p.1 - 1] != 9 {
+            flood_fill(&(p.0, p.1 - 1), matrix, basin);
         }
-        if matrix[point.0][point.1 + 1] != 9 {
-            flood_fill(&(point.0, point.1 + 1), matrix, basin);
+        if matrix[p.0][p.1 + 1] != 9 {
+            flood_fill(&(p.0, p.1 + 1), matrix, basin);
         }
     }
 }
