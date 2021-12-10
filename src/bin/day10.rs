@@ -27,11 +27,11 @@ fn main() {
 
     println!("P1: {}", corrupted.iter().sum::<u64>());
 
-    completed.sort();
+    completed.sort_unstable();
     println!("P2: {}", completed[completed.len() / 2]);
 }
 
-fn complete(stack: &Vec<char>, point_map: &HashMap<char, u64>) -> u64 {
+fn complete(stack: &[char], point_map: &HashMap<char, u64>) -> u64 {
     stack
         .iter()
         .rev()
@@ -44,7 +44,7 @@ fn step(stack: &mut Vec<char>, c: &char, token_map: &HashMap<char, char>) -> Opt
             stack.push(*c);
         }
         None => {
-            let converted = token_map.get(&c).unwrap();
+            let converted = token_map.get(c).unwrap();
             if stack.pop().unwrap() != *converted {
                 return Some(*converted);
             }
