@@ -1,43 +1,37 @@
-use itertools::Itertools;
+use itertools::{iproduct, Itertools};
 
 fn main() {
     let input = std::fs::read_to_string("input/d11-full").expect("Error while reading");
 
-    let mut octopi: Vec<Vec<i32>> = input
+    let mut o1 = input
         .lines()
         .map(|line| {
             line.chars()
                 .map(|c| c.to_digit(10).unwrap() as i32)
-                .collect()
+                .collect_vec()
         })
-        .collect();
+        .collect_vec();
+
+    let mut o2 = o1.clone();
+
+    let flashes = (0..100).fold(0, |acc, _| acc + step(&mut o1));
+    println!("P1: {}", flashes);
 
     let mut i = 0;
-    let mut flashes = 0;
 
-    let x: usize = loop {
-        if i == 100 {
-            println!("P1: {}", flashes);
-        }
-
-        flashes += step(&mut octopi);
-
-        if is_full_flash(&octopi) {
-            break i + 1;
-        }
-
+    while !is_full_flash(&o2) {
+        step(&mut o2);
         i += 1;
-    };
-
-    println!("P2: {}", x);
+    }
+    println!("P2: {}", i);
 }
 
 fn step(octopi: &mut Vec<Vec<i32>>) -> usize {
     let mut flashes = 0;
 
-    for i in 0..octopi.len() {
-        for j in 0..octopi[i].len() {
-            octopi[i][j] += 1;
+    for row in octopi.iter_mut() {
+        for octopus in row {
+            *octopus += 1;
         }
     }
 
@@ -57,23 +51,22 @@ fn step(octopi: &mut Vec<Vec<i32>>) -> usize {
     flashes
 }
 
-fn is_full_flash(octopi: &Vec<Vec<i32>>) -> bool {
+fn is_full_flash(octopi: &[Vec<i32>]) -> bool {
     octopi
         .iter()
         .all(|row| row.iter().all(|octopus| *octopus == 0))
 }
 
 fn charge_neighbours(octopi: &mut Vec<Vec<i32>>, octopus: &(usize, usize), flashes: &mut usize) {
-    let deltas: Vec<(i32, i32)> = (-1..=1)
-        .cartesian_product(-1..=1)
+    let deltas = iproduct!(-1..=1, -1..=1)
         .filter(|(i, j)| !(*i == 0 && *j == 0))
-        .collect();
+        .collect_vec();
 
-    let neighbours: Vec<(i32, i32)> = deltas
+    let neighbours = deltas
         .iter()
         .map(|(i, j)| (octopus.0 as i32 + i, octopus.1 as i32 + j))
         .filter(|(i, j)| *i >= 0 && *i < 10 && *j >= 0 && *j < 10)
-        .collect();
+        .collect_vec();
 
     neighbours.iter().for_each(|(i, j)| {
         let (i, j) = (*i as usize, *j as usize);
