@@ -1,8 +1,8 @@
 # 🎄 Advent of Code 2021
-The most wonderful time of the year.
+My attempts at saving Christmas with Rust. 🦀
 
-## Running
+## Usage
 
-```
-cargo run --bin dayXX
+```shell
+cargo run --bin day[NN]
 ```
