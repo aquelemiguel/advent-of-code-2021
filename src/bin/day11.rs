@@ -39,11 +39,7 @@ fn step(octopi: &mut Vec<Vec<i32>>) -> usize {
         for j in 0..octopi[i].len() {
             if octopi[i][j] > 9 {
                 octopi[i][j] = 0;
-                flashes += 1;
-
-                let mut rec_flashes = 0;
-                charge_neighbours(octopi, &(i, j), &mut rec_flashes);
-                flashes += rec_flashes;
+                flashes += charge_neighbours(octopi, (i, j)) + 1;
             }
         }
     }
@@ -57,7 +53,7 @@ fn is_full_flash(octopi: &[Vec<i32>]) -> bool {
         .all(|row| row.iter().all(|octopus| *octopus == 0))
 }
 
-fn charge_neighbours(octopi: &mut Vec<Vec<i32>>, octopus: &(usize, usize), flashes: &mut usize) {
+fn charge_neighbours(octopi: &mut Vec<Vec<i32>>, octopus: (usize, usize)) -> usize {
     let deltas = iproduct!(-1..=1, -1..=1)
         .filter(|(i, j)| !(*i == 0 && *j == 0))
         .collect_vec();
@@ -66,19 +62,20 @@ fn charge_neighbours(octopi: &mut Vec<Vec<i32>>, octopus: &(usize, usize), flash
         .iter()
         .map(|(i, j)| (octopus.0 as i32 + i, octopus.1 as i32 + j))
         .filter(|(i, j)| *i >= 0 && *i < 10 && *j >= 0 && *j < 10)
+        .map(|(i, j)| (i as usize, j as usize))
         .collect_vec();
 
-    neighbours.iter().for_each(|(i, j)| {
-        let (i, j) = (*i as usize, *j as usize);
-
-        if octopi[i][j] > 0 {
-            octopi[i][j] += 1;
-
-            if octopi[i][j] > 9 {
-                octopi[i][j] = 0;
-                *flashes += 1;
-                charge_neighbours(octopi, &(i, j), flashes);
-            }
+    neighbours.into_iter().fold(0, |acc, (i, j)| {
+        if octopi[i][j] == 0 {
+            return acc;
         }
-    });
+        octopi[i][j] += 1;
+
+        if octopi[i][j] > 9 {
+            octopi[i][j] = 0;
+            acc + charge_neighbours(octopi, (i, j)) + 1
+        } else {
+            acc
+        }
+    })
 }
