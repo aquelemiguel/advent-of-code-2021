@@ -48,9 +48,7 @@ fn step(octopi: &mut Vec<Vec<i32>>) -> usize {
 }
 
 fn is_full_flash(octopi: &[Vec<i32>]) -> bool {
-    octopi
-        .iter()
-        .all(|row| row.iter().all(|octopus| *octopus == 0))
+    octopi.iter().all(|row| row.iter().all(|o| *o == 0))
 }
 
 fn charge_neighbours(octopi: &mut Vec<Vec<i32>>, octopus: (usize, usize)) -> usize {
