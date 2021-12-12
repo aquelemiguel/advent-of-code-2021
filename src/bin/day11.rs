@@ -35,8 +35,8 @@ fn step(octopi: &mut Vec<Vec<i32>>) -> usize {
         }
     }
 
-    for i in 0..octopi.len() {
-        for j in 0..octopi[i].len() {
+    for i in 0..10 {
+        for j in 0..10 {
             if octopi[i][j] > 9 {
                 octopi[i][j] = 0;
                 flashes += charge_neighbours(octopi, (i, j)) + 1;
