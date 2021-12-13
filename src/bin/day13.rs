@@ -1,7 +1,7 @@
 use itertools::Itertools;
 use std::collections::HashSet;
 
-type Point = (u32, u32);
+type Point = (i32, i32);
 
 fn main() {
     let input = std::fs::read_to_string("input/d13-f").expect("Error while reading");
@@ -33,25 +33,14 @@ fn step(points: &mut HashSet<Point>, fold: &Point) {
 
     let inside: HashSet<&Point> = snapshot
         .iter()
-        .filter(|point| is_inside_fold(point, fold))
+        .filter(|point| point.0 >= fold.0 && point.1 >= fold.1)
         .collect();
 
     for point in inside {
-        let folded = fold_point(point, fold);
+        let folded = ((2 * fold.0 - point.0).abs(), (2 * fold.1 - point.1).abs());
         points.remove(point);
         points.insert(folded);
     }
-}
-
-fn fold_point(point: &Point, fold: &Point) -> Point {
-    (
-        (fold.0 as i32 - (point.0 - fold.0) as i32).abs() as u32,
-        (fold.1 as i32 - (point.1 - fold.1) as i32).abs() as u32,
-    )
-}
-
-fn is_inside_fold(point: &Point, fold: &Point) -> bool {
-    point.0 >= fold.0 && point.1 >= fold.1
 }
 
 fn parse_input(input: &str) -> (HashSet<Point>, Vec<Point>) {
@@ -63,7 +52,7 @@ fn parse_input(input: &str) -> (HashSet<Point>, Vec<Point>) {
         .map(|point| {
             point
                 .split(',')
-                .map(|p| p.parse::<u32>().unwrap())
+                .map(|p| p.parse::<i32>().unwrap())
                 .collect_tuple()
                 .unwrap()
         })
