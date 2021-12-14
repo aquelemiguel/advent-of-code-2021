@@ -52,7 +52,7 @@ fn parse_input(input: &str) -> (HashSet<Point>, Vec<Point>) {
         .map(|point| {
             point
                 .split(',')
-                .map(|p| p.parse::<i32>().unwrap())
+                .map(|p| p.parse().unwrap())
                 .collect_tuple()
                 .unwrap()
         })
@@ -67,7 +67,6 @@ fn parse_input(input: &str) -> (HashSet<Point>, Vec<Point>) {
             if split[0].ends_with('y') {
                 std::mem::swap(&mut point.0, &mut point.1);
             }
-
             point
         })
         .collect();
