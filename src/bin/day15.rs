@@ -56,17 +56,15 @@ fn main() {
 }
 
 fn get_adjacency_matrix(cave: &[Vec<usize>]) -> Vec<Vec<Edge>> {
-    let mapping: HashMap<(usize, usize), usize> = HashMap::from_iter(
-        (0..cave.len())
-            .cartesian_product(0..cave.len())
-            .enumerate()
-            .map(|(i, pair)| (pair, i)),
-    );
+    let coords = iproduct!(0..cave.len(), 0..cave.len()).collect_vec();
+
+    let mapping: HashMap<(usize, usize), usize> =
+        HashMap::from_iter(coords.iter().enumerate().map(|(i, pair)| (*pair, i)));
 
     let mut adj: Vec<Vec<Edge>> = vec![];
 
-    for node in iproduct!(0..cave.len(), 0..cave.len()) {
-        let neighbours = get_neighbours(&node, cave);
+    for node in coords.iter() {
+        let neighbours = get_neighbours(node, cave);
 
         let edges = neighbours.into_iter().map(|(x, y)| Edge {
             node: *mapping.get(&(x, y)).unwrap(),
