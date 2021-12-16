@@ -1,74 +1,122 @@
+use itertools::{iproduct, Itertools};
 use std::{
-    collections::{HashMap, HashSet},
+    cmp::Ordering,
+    collections::{BinaryHeap, HashMap},
     iter::FromIterator,
 };
 
-use itertools::Itertools;
+struct Edge {
+    node: usize,
+    cost: usize,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq)]
+struct State {
+    cost: usize,
+    position: usize,
+}
+
+impl Ord for State {
+    fn cmp(&self, other: &Self) -> Ordering {
+        other
+            .cost
+            .cmp(&self.cost)
+            .then_with(|| self.position.cmp(&other.position))
+    }
+}
+
+impl PartialOrd for State {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
 
 fn main() {
     let input = std::fs::read_to_string("input/d15-f").expect("Error while reading");
 
-    let mut small_cave = generate_small_cave(&input);
-    small_cave[0][0] = 0;
+    let mut cave = generate_small_cave(&input);
+    cave[0][0] = 0;
 
-    println!("P1: {}", dijkstra(&small_cave));
+    let adj = get_adjacency_matrix(&cave);
 
-    let mut big_cave = generate_big_cave(&input);
-    big_cave[0][0] = 0;
+    match dijkstra(&adj) {
+        Some(risk) => println!("P1: {}", risk),
+        None => unreachable!(),
+    }
 
-    println!("P2: {}", dijkstra(&big_cave));
+    let mut cave = generate_big_cave(&input);
+    cave[0][0] = 0;
+
+    let adj = get_adjacency_matrix(&cave);
+
+    match dijkstra(&adj) {
+        Some(risk) => println!("P2: {}", risk),
+        None => unreachable!(),
+    }
 }
 
-fn dijkstra(cave: &Vec<Vec<usize>>) -> usize {
-    let mut unvisited: HashSet<(usize, usize)> = HashSet::from_iter(
+fn get_adjacency_matrix(cave: &[Vec<usize>]) -> Vec<Vec<Edge>> {
+    let mapping: HashMap<(usize, usize), usize> = HashMap::from_iter(
         (0..cave.len())
             .cartesian_product(0..cave.len())
-            .collect_vec(),
+            .enumerate()
+            .map(|(i, pair)| (pair, i)),
     );
 
-    let mut dist: HashMap<(usize, usize), usize> =
-        HashMap::from_iter(unvisited.iter().map(|point| (*point, usize::MAX)));
+    let mut adj: Vec<Vec<Edge>> = vec![];
 
-    dist.insert((0, 0), 0).unwrap();
+    for node in iproduct!(0..cave.len(), 0..cave.len()) {
+        let neighbours = get_neighbours(&node, cave);
 
-    let mut prev: HashMap<(usize, usize), (usize, usize)> = HashMap::new();
+        let edges = neighbours.into_iter().map(|(x, y)| Edge {
+            node: *mapping.get(&(x, y)).unwrap(),
+            cost: cave[x][y],
+        });
 
-    while !unvisited.is_empty() {
-        let next = dist.clone();
-        let next = next
-            .iter()
-            .filter(|entry| unvisited.contains(entry.0))
-            .sorted_by(|a, b| Ord::cmp(a.1, b.1))
-            .nth(0)
-            .unwrap();
+        adj.push(edges.collect_vec());
+    }
 
-        unvisited.remove(next.0);
+    adj
+}
 
-        let neighbours = get_neighbours(next.0, cave.len());
+fn dijkstra(adj: &[Vec<Edge>]) -> Option<usize> {
+    let mut dist = (0..adj.len()).map(|_| usize::MAX).collect_vec();
+    let mut heap = BinaryHeap::new();
 
-        let neighbours = neighbours
-            .iter()
-            .filter(|vertex| unvisited.contains(vertex))
-            .collect_vec();
+    let goal = adj.len() - 1;
 
-        if next.0 .0 == cave.len() - 1 && next.0 .1 == cave.len() - 1 {
-            break;
+    dist[0] = 0;
+    heap.push(State {
+        cost: 0,
+        position: 0,
+    });
+
+    while let Some(State { cost, position }) = heap.pop() {
+        if position == goal {
+            return Some(cost);
         }
 
-        for neighbour in neighbours {
-            let distance = next.1 + cave[neighbour.0][neighbour.1];
+        if cost > dist[position] {
+            continue;
+        }
 
-            if distance < *dist.get(neighbour).unwrap() {
-                dist.insert(*neighbour, distance);
-                prev.insert(*neighbour, *next.0);
+        for edge in &adj[position] {
+            let next = State {
+                cost: cost + edge.cost,
+                position: edge.node,
+            };
+
+            if next.cost < dist[next.position] {
+                heap.push(next);
+                dist[next.position] = next.cost;
             }
         }
     }
 
-    *dist.get(&(cave.len() - 1, cave.len() - 1)).unwrap()
+    None
 }
 
-fn generate_small_cave(input: &String) -> Vec<Vec<usize>> {
+fn generate_small_cave(input: &str) -> Vec<Vec<usize>> {
     input
         .lines()
         .map(|line| {
@@ -79,7 +127,7 @@ fn generate_small_cave(input: &String) -> Vec<Vec<usize>> {
         .collect_vec()
 }
 
-fn generate_big_cave(input: &String) -> Vec<Vec<usize>> {
+fn generate_big_cave(input: &str) -> Vec<Vec<usize>> {
     let small_cave = generate_small_cave(input);
 
     let big_cave = small_cave
@@ -103,15 +151,13 @@ fn generate_big_cave(input: &String) -> Vec<Vec<usize>> {
         .collect_vec()
 }
 
-fn get_neighbours(point: &(usize, usize), cavern_size: usize) -> Vec<(usize, usize)> {
+fn get_neighbours(point: &(usize, usize), cave: &[Vec<usize>]) -> Vec<(usize, usize)> {
     let deltas: Vec<(i32, i32)> = vec![(-1, 0), (1, 0), (0, -1), (0, 1)];
 
     deltas
         .iter()
         .map(|delta| (delta.0 + point.0 as i32, delta.1 + point.1 as i32))
-        .filter(|(x, y)| {
-            *x >= 0 && x < &(cavern_size as i32) && *y >= 0 && y < &(cavern_size as i32)
-        })
+        .filter(|(x, y)| *x >= 0 && x < &(cave.len() as i32) && *y >= 0 && y < &(cave.len() as i32))
         .map(|(x, y)| (x as usize, y as usize))
         .collect_vec()
 }
