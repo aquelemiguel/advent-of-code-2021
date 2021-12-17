@@ -1,7 +1,6 @@
-use std::ops::RangeInclusive;
-
 use itertools::Itertools;
 use regex::Regex;
+use std::ops::RangeInclusive;
 
 type TargetArea = (RangeInclusive<i32>, RangeInclusive<i32>);
 type Point = (i32, i32);
@@ -11,40 +10,39 @@ fn main() {
     let area = parse_input(&input);
 
     let mut peaks: Vec<i32> = vec![];
-    let mut valid: Vec<(i32, i32)> = vec![];
+    let mut valid: Vec<Point> = vec![];
 
     for vx in -250..250 {
         for vy in -250..250 {
-            let (mut pos, mut vel) = ((0, 0), (vx, vy));
-            let mut steps: Vec<Point> = vec![(0, 0)];
-
-            for _ in 0..1000 {
-                step(&mut pos, &mut vel);
-                steps.push(pos);
-
-                if landed(&area, &pos) {
-                    let highest = get_peak(steps);
+            match fire_probe(&area, &(vx, vy)) {
+                Some(steps) => {
+                    let highest = get_peak(&steps);
                     peaks.push(highest);
                     valid.push((vx, vy));
-                    break;
                 }
+                None => {}
             }
         }
     }
 
     peaks.sort();
-
     println!("P1: {:?}", peaks.last().unwrap());
     println!("P2: {:?}", valid.len());
 }
 
-fn get_peak(mut points: Vec<Point>) -> i32 {
-    points.sort_by(|a, b| b.1.cmp(&a.1));
-    points.first().unwrap().1
-}
+fn fire_probe(area: &TargetArea, vel: &Point) -> Option<Vec<Point>> {
+    let (mut pos, mut vel) = ((0, 0), vel.clone());
+    let mut steps: Vec<Point> = vec![(0, 0)];
 
-fn landed(area: &TargetArea, pos: &Point) -> bool {
-    area.0.contains(&pos.0) && area.1.contains(&pos.1)
+    for _ in 0..1000 {
+        step(&mut pos, &mut vel);
+        steps.push(pos);
+
+        if landed(&area, &pos) {
+            return Some(steps);
+        }
+    }
+    None
 }
 
 fn step(pos: &mut Point, vel: &mut Point) {
@@ -58,6 +56,16 @@ fn step(pos: &mut Point, vel: &mut Point) {
     }
 
     vel.1 -= 1;
+}
+
+fn get_peak(points: &Vec<Point>) -> i32 {
+    let mut points = points.clone();
+    points.sort_by(|a, b| b.1.cmp(&a.1));
+    points.first().unwrap().1
+}
+
+fn landed(area: &TargetArea, pos: &Point) -> bool {
+    area.0.contains(&pos.0) && area.1.contains(&pos.1)
 }
 
 fn parse_input(input: &str) -> TargetArea {
